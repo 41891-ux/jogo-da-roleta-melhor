@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎰 Roleta Minimalista</title>
+<style>
+  body {
+    background: radial-gradient(circle at center, #111, #000);
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+    text-align: center;
+    padding: 20px;
+  }
+
+  h1 {
+    color: #ffcc00;
+    text-shadow: 0 0 15px #ffcc00;
+    margin-bottom: 15px;
+  }
+
+  .container {
+    background: rgba(255,255,255,0.1);
+    border-radius: 15px;
+    padding: 25px;
+    max-width: 450px;
+    margin: auto;
+    box-shadow: 0 0 15px rgba(255,255,255,0.1);
+  }
+
+  .saldo {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+    color: #00ff88;
+  }
+
+  input {
+    width: 80%;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    margin: 8px 0;
+    font-size: 1em;
+    text-align: center;
+  }
+
+  button {
+    background: linear-gradient(45deg, #ff0055, #ff7b00);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  button:hover {
+    transform: scale(1.05);
+    background: linear-gradient(45deg, #ff7b00, #ff0055);
+  }
+
+  .mensagem {
+    margin-top: 15px;
+    font-size: 1.1em;
+  }
+
+  .resultado {
+    font-size: 1.5em;
+    color: #ffea00;
+    margin-top: 10px;
+    text-shadow: 0 0 10px #ffea00;
+  }
+
+  /* ===== ROLETA ===== */
+  .roleta-wrapper {
+    position: relative;
+    margin: 30px auto;
+    width: 280px;
+    height: 280px;
+  }
+
+  .roleta {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 6px solid #fff;
+    /* 12 setores alternando vermelho e preto */
+    background: conic-gradient(
+      #ff0000 0deg 30deg,
+      #000 30deg 60deg,
+      #ff0000 60deg 90deg,
+      #000 90deg 120deg,
+      #ff0000 120deg 150deg,
+      #000 150deg 180deg,
+      #ff0000 180deg 210deg,
+      #000 210deg 240deg,
+      #ff0000 240deg 270deg,
+      #000 270deg 300deg,
+      #ff0000 300deg 330deg,
+      #000 330deg 360deg
+    );
+    transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+
+  .ponteiro {
+    width: 0;
+    height: 0;
+    border-left: 14px solid transparent;
+    border-right: 14px solid transparent;
+    border-bottom: 30px solid #ffcc00;
+    position: absolute;
+    top: -25px;
+    left: calc(50% - 14px);
+    z-index: 10;
+    filter: drop-shadow(0 0 6px #ffcc00);
+  }
+</style>
+</head>
+<body>
+
+<h1>🎰 Roleta Minimalista (0–11)</h1>
+
+<div class="container">
+  <div class="saldo">💰 Saldo: R$<span id="saldo">100</span></div>
+
+  <input type="number" id="aposta" placeholder="Quanto deseja apostar?" min="1">
+  <input type="number" id="numero" placeholder="Escolha um número (0 a 11)" min="0" max="11">
+  <button onclick="jogar()">🎲 Girar a Roleta</button>
+
+  <div class="roleta-wrapper">
+    <div class="ponteiro"></div>
+    <div class="roleta" id="roleta"></div>
+  </div>
+
+  <div class="mensagem" id="mensagem"></div>
+  <div class="resultado" id="resultado"></div>
+</div>
+
+<script>
+let saldo = 100;
+const roleta = document.getElementById("roleta");
+
+function jogar() {
+  const aposta = parseInt(document.getElementById("aposta").value);
+  const numeroEscolhido = parseInt(document.getElementById("numero").value);
+  const mensagem = document.getElementById("mensagem");
+  const resultadoDiv = document.getElementById("resultado");
+
+  if (isNaN(aposta) || aposta <= 0 || aposta > saldo) {
+    mensagem.innerHTML = "⚠️ Aposta inválida!";
+    return;
+  }
+
+  if (isNaN(numeroEscolhido) || numeroEscolhido < 0 || numeroEscolhido > 11) {
+    mensagem.innerHTML = "⚠️ Escolha um número entre 0 e 11!";
+    return;
+  }
+
+  mensagem.innerHTML = "🎡 Girando a roleta...";
+  resultadoDiv.innerHTML = "";
+
+  const setores = 12;
+  const resultado = Math.floor(Math.random() * setores);
+  const grausPorSetor = 360 / setores;
+  const giroExtra = 360 * 5;
+  const anguloFinal = giroExtra + (360 - resultado * grausPorSetor) - (grausPorSetor / 2);
+
+  roleta.style.transform = `rotate(${anguloFinal}deg)`;
+
+  setTimeout(() => {
+    resultadoDiv.innerHTML = `🎯 A roleta parou no número: <strong>${resultado}</strong>`;
+
+    if (numeroEscolhido === resultado) {
+      const ganho = aposta * 11;
+      saldo += ganho;
+      mensagem.innerHTML = `🎉 Parabéns! Você ganhou R$${ganho}!`;
+    } else {
+      saldo -= aposta;
+      mensagem.innerHTML = "💸 Que pena! Você perdeu.";
+    }
+
+    document.getElementById("saldo").textContent = saldo;
+
+    if (saldo <= 0) {
+      mensagem.innerHTML = "❌ Você ficou sem saldo! Fim de jogo.";
+      document.querySelector("button").disabled = true;
+    }
+  }, 4200);
+}
+</script>
+</body>
+</html>
